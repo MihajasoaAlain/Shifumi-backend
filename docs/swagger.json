@@ -32,6 +32,44 @@
                 }
             }
         },
+        "/game/{id}": {
+            "get": {
+                "description": "Récupère les détails d'une partie spécifique en utilisant son ID.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "Obtenir les détails d'une partie",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de la partie",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/shifumi_internal_models.Game"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/game/{id}/join": {
             "post": {
                 "description": "Permet à un joueur de rejoindre une partie existante en fournissant un nom d'utilisateur.",

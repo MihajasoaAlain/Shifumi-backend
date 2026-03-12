@@ -48,6 +48,31 @@ paths:
       summary: Créer une nouvelle partie
       tags:
       - Game
+  /game/{id}:
+    get:
+      description: Récupère les détails d'une partie spécifique en utilisant son ID.
+      parameters:
+      - description: ID de la partie
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/shifumi_internal_models.Game'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtenir les détails d'une partie
+      tags:
+      - Game
   /game/{id}/join:
     post:
       consumes:
