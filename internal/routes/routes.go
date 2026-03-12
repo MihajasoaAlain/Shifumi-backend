@@ -15,5 +15,6 @@ func SetupRoutes(router *gin.Engine) {
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router.GET("/health", handlers.HealthHandler)
 	router.POST("/game", handlers.CreateGameHandler)
+	router.POST("/game/:id/join", handlers.JoinGameHandler)
 
 }
