@@ -30,7 +30,60 @@ const docTemplate = `{
                 "summary": "Créer une nouvelle partie",
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/shifumi_internal_models.Game"
+                        }
+                    }
+                }
+            }
+        },
+        "/game/{id}/join": {
+            "post": {
+                "description": "Permet à un joueur de rejoindre une partie existante en fournissant un nom d'utilisateur.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "Rejoindre une partie existante",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de la partie",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Requête pour rejoindre une partie",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/shifumi_internal_models.JoinGameRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/shifumi_internal_models.Game"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     }
                 }
             }
@@ -55,6 +108,47 @@ const docTemplate = `{
                             }
                         }
                     }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "shifumi_internal_models.Game": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "players": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/shifumi_internal_models.Player"
+                    }
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "shifumi_internal_models.JoinGameRequest": {
+            "type": "object",
+            "properties": {
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "shifumi_internal_models.Player": {
+            "type": "object",
+            "properties": {
+                "choice": {
+                    "type": "string"
+                },
+                "score": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
                 }
             }
         }
