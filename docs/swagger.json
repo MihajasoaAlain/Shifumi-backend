@@ -1,0 +1,39 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API pour le jeu Shifumi (Pierre-Papier-Ciseaux).",
+        "title": "Shifumi API",
+        "contact": {
+            "name": "Mihajasoa",
+            "email": "mihajasoaalain85@gmail.com"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/health": {
+            "get": {
+                "description": "Renvoie un statut 200 si le service Shifumi est opérationnel.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "System"
+                ],
+                "summary": "Vérifier la santé de l'API",
+                "responses": {
+                    "200": {
+                        "description": "Exemple: {\"message\": \"work well\"}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
