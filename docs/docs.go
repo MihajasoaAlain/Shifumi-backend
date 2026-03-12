@@ -40,7 +40,7 @@ const docTemplate = `{
         },
         "/game/{id}": {
             "get": {
-                "description": "Récupère les détails d'une partie spécifique en utilisant son ID.",
+                "description": "Récupère les détails d'une partie de Shifumi en fonction de son ID.",
                 "produces": [
                     "application/json"
                 ],
@@ -126,6 +126,56 @@ const docTemplate = `{
                 }
             }
         },
+        "/game/{id}/play": {
+            "post": {
+                "description": "Permet à un joueur de jouer un tour de Shifumi en fournissant son choix (pierre, papier ou ciseaux).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "Jouer un tour de Shifumi",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de la partie",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Requête pour jouer un tour",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/shifumi_internal_models.PlayRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/shifumi_internal_models.Game"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "description": "Renvoie un statut 200 si le service Shifumi est opérationnel.",
@@ -151,6 +201,19 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "shifumi_internal_models.Choice": {
+            "type": "string",
+            "enum": [
+                "rock",
+                "paper",
+                "scissors"
+            ],
+            "x-enum-varnames": [
+                "Rock",
+                "Paper",
+                "Scissors"
+            ]
+        },
         "shifumi_internal_models.Game": {
             "type": "object",
             "properties": {
@@ -164,9 +227,22 @@ const docTemplate = `{
                     }
                 },
                 "status": {
-                    "type": "string"
+                    "$ref": "#/definitions/shifumi_internal_models.GameStatus"
                 }
             }
+        },
+        "shifumi_internal_models.GameStatus": {
+            "type": "string",
+            "enum": [
+                "waiting",
+                "ready",
+                "playing"
+            ],
+            "x-enum-varnames": [
+                "Waiting",
+                "Ready",
+                "Playing"
+            ]
         },
         "shifumi_internal_models.JoinGameRequest": {
             "type": "object",
@@ -176,11 +252,22 @@ const docTemplate = `{
                 }
             }
         },
+        "shifumi_internal_models.PlayRequest": {
+            "type": "object",
+            "properties": {
+                "choice": {
+                    "$ref": "#/definitions/shifumi_internal_models.Choice"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
         "shifumi_internal_models.Player": {
             "type": "object",
             "properties": {
                 "choice": {
-                    "type": "string"
+                    "$ref": "#/definitions/shifumi_internal_models.Choice"
                 },
                 "score": {
                     "type": "integer"

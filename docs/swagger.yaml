@@ -1,5 +1,15 @@
 basePath: /
 definitions:
+  shifumi_internal_models.Choice:
+    enum:
+    - rock
+    - paper
+    - scissors
+    type: string
+    x-enum-varnames:
+    - Rock
+    - Paper
+    - Scissors
   shifumi_internal_models.Game:
     properties:
       id:
@@ -9,17 +19,34 @@ definitions:
           $ref: '#/definitions/shifumi_internal_models.Player'
         type: array
       status:
-        type: string
+        $ref: '#/definitions/shifumi_internal_models.GameStatus'
     type: object
+  shifumi_internal_models.GameStatus:
+    enum:
+    - waiting
+    - ready
+    - playing
+    type: string
+    x-enum-varnames:
+    - Waiting
+    - Ready
+    - Playing
   shifumi_internal_models.JoinGameRequest:
     properties:
+      username:
+        type: string
+    type: object
+  shifumi_internal_models.PlayRequest:
+    properties:
+      choice:
+        $ref: '#/definitions/shifumi_internal_models.Choice'
       username:
         type: string
     type: object
   shifumi_internal_models.Player:
     properties:
       choice:
-        type: string
+        $ref: '#/definitions/shifumi_internal_models.Choice'
       score:
         type: integer
       username:
@@ -50,7 +77,8 @@ paths:
       - Game
   /game/{id}:
     get:
-      description: Récupère les détails d'une partie spécifique en utilisant son ID.
+      description: Récupère les détails d'une partie de Shifumi en fonction de son
+        ID.
       parameters:
       - description: ID de la partie
         in: path
@@ -105,6 +133,40 @@ paths:
               type: string
             type: object
       summary: Rejoindre une partie existante
+      tags:
+      - Game
+  /game/{id}/play:
+    post:
+      consumes:
+      - application/json
+      description: Permet à un joueur de jouer un tour de Shifumi en fournissant son
+        choix (pierre, papier ou ciseaux).
+      parameters:
+      - description: ID de la partie
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Requête pour jouer un tour
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shifumi_internal_models.PlayRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/shifumi_internal_models.Game'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Jouer un tour de Shifumi
       tags:
       - Game
   /health:
