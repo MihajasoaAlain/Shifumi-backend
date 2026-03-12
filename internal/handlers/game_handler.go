@@ -67,3 +67,29 @@ func GetGameHandler(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, game)
 }
+
+// PlayGameHandler godoc
+// @Summary      Jouer un tour de Shifumi
+// @Description  Permet à un joueur de jouer un tour de Shifumi en fournissant son choix (pierre, papier ou ciseaux).
+// @Tags         Game
+// @Accept       json
+// @Produce      json
+// @Param        id   path      string  true  "ID de la partie"
+// @Param        body body      models.PlayRequest true "Requête pour jouer un tour"
+// @Success      200  {object}  models.Game
+// @Failure      400  {object}  map[string]string
+// @Router       /game/{id}/play [post]
+func PlayGameHandler(c *gin.Context) {
+	gameID := c.Param("id")
+	var req models.PlayRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+	game, err := services.PlayRound(gameID, req.Username, req.Choice)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, game)
+}
