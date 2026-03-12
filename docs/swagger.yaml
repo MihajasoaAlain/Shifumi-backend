@@ -8,6 +8,18 @@ info:
   title: Shifumi API
   version: "1.0"
 paths:
+  /game:
+    post:
+      description: Crée une nouvelle partie de Shifumi et renvoie les détails de la
+        partie créée.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Créer une nouvelle partie
+      tags:
+      - Game
   /health:
     get:
       description: Renvoie un statut 200 si le service Shifumi est opérationnel.
