@@ -11,3 +11,7 @@ type Game struct {
 	Players []Player `json:"players"`
 	Status  string   `json:"status"`
 }
+
+type JoinGameRequest struct {
+	Username string `json:"username"`
+}
