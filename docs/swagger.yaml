@@ -1,0 +1,26 @@
+basePath: /
+host: localhost:8080
+info:
+  contact:
+    email: mihajasoaalain85@gmail.com
+    name: Mihajasoa
+  description: API pour le jeu Shifumi (Pierre-Papier-Ciseaux).
+  title: Shifumi API
+  version: "1.0"
+paths:
+  /health:
+    get:
+      description: Renvoie un statut 200 si le service Shifumi est opérationnel.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Exemple: {"message": "work well"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Vérifier la santé de l'API
+      tags:
+      - System
+swagger: "2.0"
