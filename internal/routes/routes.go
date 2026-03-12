@@ -1,12 +1,19 @@
 package routes
 
-import "github.com/gin-gonic/gin"
+import (
+	"shifumi/internal/handlers"
+
+	_ "shifumi/docs"
+
+	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+)
 
 func SetupRoutes(router *gin.Engine) {
-	router.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "work well",
-		})
-	})
+
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	router.GET("/health", handlers.HealthHandler)
 
 }
