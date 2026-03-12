@@ -1,7 +1,6 @@
 package services
 
 import (
-	"errors"
 	"fmt"
 	"shifumi/internal/models"
 )
@@ -78,13 +77,16 @@ func determineWinner(choice1 models.Choice, choice2 models.Choice) int {
 
 func PlayRound(gameID string, username string, choice models.Choice) (map[string]interface{}, error) {
 	fmt.Printf("PlayRound called with gameID: %s, username: %s, choice: %s\n", gameID, username, choice)
+
 	game, exists := games[gameID]
 	if !exists {
 		return nil, fmt.Errorf("game not found")
 	}
+
 	if len(game.Players) < 2 {
 		return nil, fmt.Errorf("game is not full yet")
 	}
+
 	if game.Status != models.Playing && game.Status != models.Ready {
 		return nil, fmt.Errorf("game is not in playing status")
 	}
@@ -92,6 +94,7 @@ func PlayRound(gameID string, username string, choice models.Choice) (map[string
 	if !isValidChoice(choice) {
 		return nil, fmt.Errorf("invalid choice")
 	}
+
 	playerIndex := -1
 	for i, player := range game.Players {
 		if player.Username == username {
@@ -99,41 +102,88 @@ func PlayRound(gameID string, username string, choice models.Choice) (map[string
 			break
 		}
 	}
+
 	if playerIndex == -1 {
 		return nil, fmt.Errorf("player not found in this game")
 	}
 
 	if game.Players[playerIndex].Choice != "" {
-		return nil, errors.New("player has already played this round")
+		return nil, fmt.Errorf("player has already played this round")
 	}
-	if game.Players[playerIndex].Choice != "" {
-		return nil, errors.New("player has already played this round")
-	}
+
 	game.Players[playerIndex].Choice = choice
 	game.Status = models.Playing
 
-	if game.Players[0].Choice != "" && game.Players[1].Choice != "" {
+	fmt.Printf("Player %s chose %s\n", username, choice)
+	fmt.Printf("Current game state: %+v\n", game)
+
+	if game.Players[0].Choice == "" || game.Players[1].Choice == "" {
 		return map[string]interface{}{
 			"message": "choice saved, waiting for the other player",
 			"game":    game,
 		}, nil
 	}
+
 	firstChoice := game.Players[0].Choice
 	secondChoice := game.Players[1].Choice
+
 	winner := determineWinner(firstChoice, secondChoice)
+
+	var result map[string]interface{}
+
 	switch winner {
+	case 0:
+		result = map[string]interface{}{
+			"message": "round completed",
+			"result":  "draw",
+			"choices": map[string]models.Choice{
+				game.Players[0].Username: firstChoice,
+				game.Players[1].Username: secondChoice,
+			},
+			"scores": map[string]int{
+				game.Players[0].Username: game.Players[0].Score,
+				game.Players[1].Username: game.Players[1].Score,
+			},
+		}
 	case 1:
 		game.Players[0].Score++
+		result = map[string]interface{}{
+			"message": "round completed",
+			"result":  "win",
+			"winner":  game.Players[0].Username,
+			"choices": map[string]models.Choice{
+				game.Players[0].Username: firstChoice,
+				game.Players[1].Username: secondChoice,
+			},
+			"scores": map[string]int{
+				game.Players[0].Username: game.Players[0].Score,
+				game.Players[1].Username: game.Players[1].Score,
+			},
+		}
 	case 2:
 		game.Players[1].Score++
+		result = map[string]interface{}{
+			"message": "round completed",
+			"result":  "win",
+			"winner":  game.Players[1].Username,
+			"choices": map[string]models.Choice{
+				game.Players[0].Username: firstChoice,
+				game.Players[1].Username: secondChoice,
+			},
+			"scores": map[string]int{
+				game.Players[0].Username: game.Players[0].Score,
+				game.Players[1].Username: game.Players[1].Score,
+			},
+		}
+	default:
+		return nil, fmt.Errorf("unexpected winner value")
 	}
 
-	result := map[string]interface{}{
-		"message": "round completed",
-		"game":    game,
-	}
 	for i := range game.Players {
 		game.Players[i].Choice = ""
 	}
+
+	game.Status = models.Ready
+
 	return result, nil
 }
