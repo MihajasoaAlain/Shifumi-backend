@@ -1,4 +1,30 @@
 basePath: /
+definitions:
+  shifumi_internal_models.Game:
+    properties:
+      id:
+        type: string
+      players:
+        items:
+          $ref: '#/definitions/shifumi_internal_models.Player'
+        type: array
+      status:
+        type: string
+    type: object
+  shifumi_internal_models.JoinGameRequest:
+    properties:
+      username:
+        type: string
+    type: object
+  shifumi_internal_models.Player:
+    properties:
+      choice:
+        type: string
+      score:
+        type: integer
+      username:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -17,7 +43,43 @@ paths:
       responses:
         "200":
           description: OK
+          schema:
+            $ref: '#/definitions/shifumi_internal_models.Game'
       summary: Créer une nouvelle partie
+      tags:
+      - Game
+  /game/{id}/join:
+    post:
+      consumes:
+      - application/json
+      description: Permet à un joueur de rejoindre une partie existante en fournissant
+        un nom d'utilisateur.
+      parameters:
+      - description: ID de la partie
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Requête pour rejoindre une partie
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/shifumi_internal_models.JoinGameRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/shifumi_internal_models.Game'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Rejoindre une partie existante
       tags:
       - Game
   /health:

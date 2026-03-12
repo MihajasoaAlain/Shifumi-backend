@@ -20,3 +20,31 @@ func CreateGame() *models.Game {
 	return game
 
 }
+
+func JoinGame(gameID string, username string) (*models.Game, error) {
+	game, exists := games[gameID]
+	if !exists {
+		return nil, fmt.Errorf("game not found")
+	}
+	if username == "" {
+		return nil, fmt.Errorf("username cannot be empty")
+	}
+	if len(game.Players) >= 2 {
+		return nil, fmt.Errorf("game is full")
+	}
+	for _, player := range game.Players {
+		if player.Username == username {
+			return nil, fmt.Errorf("username already taken in this game")
+		}
+	}
+	newPlayer := models.Player{
+		Username: username,
+		Choice:   "",
+		Score:    0,
+	}
+	game.Players = append(game.Players, newPlayer)
+	if len(game.Players) == 2 {
+		game.Status = "ready"
+	}
+	return game, nil
+}
