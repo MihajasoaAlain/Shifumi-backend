@@ -18,6 +18,23 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/game": {
+            "post": {
+                "description": "Crée une nouvelle partie de Shifumi et renvoie les détails de la partie créée.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "Créer une nouvelle partie",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "description": "Renvoie un statut 200 si le service Shifumi est opérationnel.",
