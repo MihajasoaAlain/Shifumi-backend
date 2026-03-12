@@ -48,3 +48,22 @@ func JoinGameHandler(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, game)
 }
+
+// GetGameHandler godoc
+// @Summary      Obtenir les détails d'une partie
+// @Description  Récupère les détails d'une partie de Shifumi en fonction de son ID.
+// @Tags         Game
+// @Produce      json
+// @Param        id   path      string  true  "ID de la partie"
+// @Success      200  {object}  models.Game
+// @Failure      400  {object}  map[string]string
+// @Router       /game/{id} [get]
+func GetGameHandler(c *gin.Context) {
+	gameID := c.Param("id")
+	game, err := services.GetGameByGame(gameID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, game)
+}

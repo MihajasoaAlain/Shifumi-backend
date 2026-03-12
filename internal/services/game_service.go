@@ -48,3 +48,11 @@ func JoinGame(gameID string, username string) (*models.Game, error) {
 	}
 	return game, nil
 }
+
+func GetGameByGame(gameID string) (*models.Game, error) {
+	game, exists := games[gameID]
+	if !exists {
+		return nil, fmt.Errorf("game not found")
+	}
+	return game, nil
+}
