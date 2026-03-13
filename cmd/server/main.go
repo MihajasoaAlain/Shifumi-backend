@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"shifumi/docs"
 	"shifumi/internal/routes"
 
 	"github.com/gin-gonic/gin"
@@ -17,6 +18,9 @@ import (
 //@BasePath /
 
 func main() {
+	docs.SwaggerInfo.Host = ""
+	docs.SwaggerInfo.Schemes = []string{}
+
 	router := gin.Default()
 	routes.SetupRoutes(router)
 
