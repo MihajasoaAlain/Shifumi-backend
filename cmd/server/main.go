@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"shifumi/internal/routes"
 
 	"github.com/gin-gonic/gin"
@@ -18,5 +19,11 @@ import (
 func main() {
 	router := gin.Default()
 	routes.SetupRoutes(router)
-	router.Run(":8080")
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	router.Run(":" + port)
 }
