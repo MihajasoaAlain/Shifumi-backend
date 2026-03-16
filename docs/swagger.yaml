@@ -101,6 +101,31 @@ paths:
       summary: Obtenir les détails d'une partie
       tags:
       - Game
+  /game/{id}/events:
+    get:
+      description: Ouvre un flux SSE pour recevoir les mises a jour d'une partie.
+      parameters:
+      - description: ID de la partie
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - text/event-stream
+      responses:
+        "200":
+          description: SSE stream
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Suivre une partie en temps reel
+      tags:
+      - Game
   /game/{id}/join:
     post:
       consumes:
