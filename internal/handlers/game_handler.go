@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"shifumi/internal/models"
 	"shifumi/internal/services"
@@ -92,4 +93,61 @@ func PlayGameHandler(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, game)
+}
+
+// StreamGameEventsHandler godoc
+// @Summary      Suivre une partie en temps reel
+// @Description  Ouvre un flux SSE pour recevoir les mises a jour d'une partie.
+// @Tags         Game
+// @Produce      text/event-stream
+// @Param        id   path      string  true  "ID de la partie"
+// @Success      200  {string}  string  "SSE stream"
+// @Failure      400  {object}  map[string]string
+// @Router       /game/{id}/events [get]
+func StreamGameEventsHandler(c *gin.Context) {
+	gameID := c.Param("id")
+	events, snapshot, err := services.SubscribeToGameEvents(gameID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	defer services.UnsubscribeFromGameEvents(gameID, events)
+
+	c.Writer.Header().Set("Content-Type", "text/event-stream")
+	c.Writer.Header().Set("Cache-Control", "no-cache")
+	c.Writer.Header().Set("Connection", "keep-alive")
+	c.Writer.Header().Set("X-Accel-Buffering", "no")
+
+	if err := writeSSEvent(c, "game.snapshot", models.GameEvent{
+		Type: "game.snapshot",
+		Game: snapshot,
+	}); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	for {
+		select {
+		case <-c.Request.Context().Done():
+			return
+		case event, ok := <-events:
+			if !ok {
+				return
+			}
+			if err := writeSSEvent(c, event.Type, event); err != nil {
+				return
+			}
+		}
+	}
+}
+
+func writeSSEvent(c *gin.Context, name string, payload interface{}) error {
+	c.SSEvent(name, payload)
+
+	if flusher, ok := c.Writer.(http.Flusher); ok {
+		flusher.Flush()
+		return nil
+	}
+
+	return fmt.Errorf("streaming unsupported")
 }
