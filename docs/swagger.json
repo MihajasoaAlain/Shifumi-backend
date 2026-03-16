@@ -70,6 +70,44 @@
                 }
             }
         },
+        "/game/{id}/events": {
+            "get": {
+                "description": "Ouvre un flux SSE pour recevoir les mises a jour d'une partie.",
+                "produces": [
+                    "text/event-stream"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "Suivre une partie en temps reel",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de la partie",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SSE stream",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/game/{id}/join": {
             "post": {
                 "description": "Permet à un joueur de rejoindre une partie existante en fournissant un nom d'utilisateur.",
