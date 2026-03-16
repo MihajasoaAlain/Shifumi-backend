@@ -2,13 +2,22 @@ package services
 
 import (
 	"fmt"
+	"sync"
+
 	"shifumi/internal/models"
 )
 
-var games = map[string]*models.Game{}
-var gameCounter = 1
+var (
+	games       = map[string]*models.Game{}
+	gameCounter = 1
+	gamesMu     sync.RWMutex
+	eventBroker = newGameEventBroker()
+)
 
 func CreateGame() *models.Game {
+	gamesMu.Lock()
+	defer gamesMu.Unlock()
+
 	gameID := fmt.Sprintf("game-%d", gameCounter)
 	gameCounter++
 	game := &models.Game{
@@ -17,11 +26,20 @@ func CreateGame() *models.Game {
 		Status:  models.Waiting,
 	}
 	games[gameID] = game
+
+	eventBroker.Publish(gameID, models.GameEvent{
+		Type: "game.created",
+		Game: cloneGame(game),
+	})
+
 	return game
 
 }
 
 func JoinGame(gameID string, username string) (*models.Game, error) {
+	gamesMu.Lock()
+	defer gamesMu.Unlock()
+
 	game, exists := games[gameID]
 	if !exists {
 		return nil, fmt.Errorf("game not found")
@@ -46,15 +64,28 @@ func JoinGame(gameID string, username string) (*models.Game, error) {
 	if len(game.Players) == 2 {
 		game.Status = models.Ready
 	}
-	return game, nil
+
+	eventBroker.Publish(gameID, models.GameEvent{
+		Type: "game.updated",
+		Game: cloneGame(game),
+		Data: map[string]string{
+			"action":   "player_joined",
+			"username": username,
+		},
+	})
+
+	return cloneGame(game), nil
 }
 
 func GetGameByGame(gameID string) (*models.Game, error) {
+	gamesMu.RLock()
+	defer gamesMu.RUnlock()
+
 	game, exists := games[gameID]
 	if !exists {
 		return nil, fmt.Errorf("game not found")
 	}
-	return game, nil
+	return cloneGame(game), nil
 }
 
 func isValidChoice(choice models.Choice) bool {
@@ -76,7 +107,8 @@ func determineWinner(choice1 models.Choice, choice2 models.Choice) int {
 }
 
 func PlayRound(gameID string, username string, choice models.Choice) (map[string]interface{}, error) {
-	fmt.Printf("PlayRound called with gameID: %s, username: %s, choice: %s\n", gameID, username, choice)
+	gamesMu.Lock()
+	defer gamesMu.Unlock()
 
 	game, exists := games[gameID]
 	if !exists {
@@ -114,14 +146,22 @@ func PlayRound(gameID string, username string, choice models.Choice) (map[string
 	game.Players[playerIndex].Choice = choice
 	game.Status = models.Playing
 
-	fmt.Printf("Player %s chose %s\n", username, choice)
-	fmt.Printf("Current game state: %+v\n", game)
-
 	if game.Players[0].Choice == "" || game.Players[1].Choice == "" {
-		return map[string]interface{}{
+		result := map[string]interface{}{
 			"message": "choice saved, waiting for the other player",
-			"game":    game,
-		}, nil
+			"game":    cloneGame(game),
+		}
+
+		eventBroker.Publish(gameID, models.GameEvent{
+			Type: "game.updated",
+			Game: cloneGame(game),
+			Data: map[string]string{
+				"action":   "choice_submitted",
+				"username": username,
+			},
+		})
+
+		return result, nil
 	}
 
 	firstChoice := game.Players[0].Choice
@@ -185,5 +225,43 @@ func PlayRound(gameID string, username string, choice models.Choice) (map[string
 
 	game.Status = models.Ready
 
+	eventBroker.Publish(gameID, models.GameEvent{
+		Type: "round.completed",
+		Game: cloneGame(game),
+		Data: result,
+	})
+
 	return result, nil
+}
+
+func SubscribeToGameEvents(gameID string) (chan models.GameEvent, *models.Game, error) {
+	gamesMu.RLock()
+	game, exists := games[gameID]
+	if !exists {
+		gamesMu.RUnlock()
+		return nil, nil, fmt.Errorf("game not found")
+	}
+	snapshot := cloneGame(game)
+	gamesMu.RUnlock()
+
+	return eventBroker.Subscribe(gameID), snapshot, nil
+}
+
+func UnsubscribeFromGameEvents(gameID string, ch chan models.GameEvent) {
+	eventBroker.Unsubscribe(gameID, ch)
+}
+
+func cloneGame(game *models.Game) *models.Game {
+	if game == nil {
+		return nil
+	}
+
+	clonedPlayers := make([]models.Player, len(game.Players))
+	copy(clonedPlayers, game.Players)
+
+	return &models.Game{
+		ID:      game.ID,
+		Players: clonedPlayers,
+		Status:  game.Status,
+	}
 }
