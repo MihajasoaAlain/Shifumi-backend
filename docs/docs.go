@@ -19,6 +19,36 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/game": {
+            "get": {
+                "description": "Récupère la liste de toutes les parties de Shifumi qui sont actuellement en attente de joueurs.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Game"
+                ],
+                "summary": "Obtenir la liste des parties en attente",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/shifumi_internal_models.Game"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Crée une nouvelle partie de Shifumi et renvoie les détails de la partie créée.",
                 "produces": [
