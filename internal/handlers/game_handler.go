@@ -69,6 +69,23 @@ func GetGameHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, game)
 }
 
+// GetAllGamesHandler godoc
+// @Summary      Obtenir la liste des parties en attente
+// @Description  Récupère la liste de toutes les parties de Shifumi qui sont actuellement en attente de joueurs.
+// @Tags         Game
+// @Produce      json
+// @Success      200  {array}   models.Game
+// @Failure      500  {object}  map[string]string
+// @Router       /game [get]
+func GetAllGamesHandler(c *gin.Context) {
+	games, err := services.GetWaitingGames()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, games)
+}
+
 // PlayGameHandler godoc
 // @Summary      Jouer un tour de Shifumi
 // @Description  Permet à un joueur de jouer un tour de Shifumi en fournissant son choix (pierre, papier ou ciseaux).
