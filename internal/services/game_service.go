@@ -88,6 +88,20 @@ func GetGameByGame(gameID string) (*models.Game, error) {
 	return cloneGame(game), nil
 }
 
+func GetWaitingGames() ([]*models.Game, error) {
+	gamesMu.RLock()
+	defer gamesMu.RUnlock()
+
+	waitingGames := make([]*models.Game, 0)
+
+	for _, game := range games {
+		if game.Status == models.Waiting {
+			waitingGames = append(waitingGames, cloneGame(game))
+		}
+	}
+	return waitingGames, nil
+}
+
 func isValidChoice(choice models.Choice) bool {
 	return choice == models.Rock ||
 		choice == models.Paper ||
