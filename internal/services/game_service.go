@@ -271,7 +271,14 @@ func cloneGame(game *models.Game) *models.Game {
 	}
 
 	clonedPlayers := make([]models.Player, len(game.Players))
-	copy(clonedPlayers, game.Players)
+	for i, player := range game.Players {
+		clonedPlayers[i] = models.Player{
+			Username:  player.Username,
+			Choice:    "",
+			HasChosen: player.Choice != "",
+			Score:     player.Score,
+		}
+	}
 
 	return &models.Game{
 		ID:      game.ID,
