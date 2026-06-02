@@ -7,6 +7,9 @@ import (
 	"shifumi/internal/models"
 )
 
+// WinningScore is the number of round wins a player needs to win the game.
+const WinningScore = 10
+
 var (
 	games       = map[string]*models.Game{}
 	gameCounter = 1
@@ -133,6 +136,10 @@ func PlayRound(gameID string, username string, choice models.Choice) (map[string
 		return nil, fmt.Errorf("game is not full yet")
 	}
 
+	if game.Status == models.Finished {
+		return nil, fmt.Errorf("game is already finished")
+	}
+
 	if game.Status != models.Playing && game.Status != models.Ready {
 		return nil, fmt.Errorf("game is not in playing status")
 	}
@@ -237,13 +244,42 @@ func PlayRound(gameID string, username string, choice models.Choice) (map[string
 		game.Players[i].Choice = ""
 	}
 
-	game.Status = models.Ready
+	// Whoever reaches WinningScore round wins is the champion and the game ends.
+	champion := ""
+	for i := range game.Players {
+		if game.Players[i].Score >= WinningScore {
+			champion = game.Players[i].Username
+			break
+		}
+	}
+
+	if champion != "" {
+		game.Status = models.Finished
+		result["gameOver"] = true
+		result["champion"] = champion
+	} else {
+		game.Status = models.Ready
+	}
 
 	eventBroker.Publish(gameID, models.GameEvent{
 		Type: "round.completed",
 		Game: cloneGame(game),
 		Data: result,
 	})
+
+	if champion != "" {
+		eventBroker.Publish(gameID, models.GameEvent{
+			Type: "game.finished",
+			Game: cloneGame(game),
+			Data: map[string]interface{}{
+				"champion": champion,
+				"scores": map[string]int{
+					game.Players[0].Username: game.Players[0].Score,
+					game.Players[1].Username: game.Players[1].Score,
+				},
+			},
+		})
+	}
 
 	return result, nil
 }
