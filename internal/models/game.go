@@ -1,9 +1,10 @@
 package models
 
 type Player struct {
-	Username string `json:"username"`
-	Choice   Choice `json:"choice"`
-	Score    int    `json:"score"`
+	Username  string `json:"username"`
+	Choice    Choice `json:"choice"`
+	HasChosen bool   `json:"hasChosen"`
+	Score     int    `json:"score"`
 }
 
 type Game struct {
