@@ -284,6 +284,41 @@ func PlayRound(gameID string, username string, choice models.Choice) (map[string
 	return result, nil
 }
 
+func RematchGame(gameID string) (*models.Game, error) {
+	gamesMu.Lock()
+	defer gamesMu.Unlock()
+
+	game, exists := games[gameID]
+	if !exists {
+		return nil, fmt.Errorf("game not found")
+	}
+
+	if game.Status != models.Finished {
+		return nil, fmt.Errorf("game is not finished")
+	}
+
+	for i := range game.Players {
+		game.Players[i].Score = 0
+		game.Players[i].Choice = ""
+	}
+
+	if len(game.Players) == 2 {
+		game.Status = models.Ready
+	} else {
+		game.Status = models.Waiting
+	}
+
+	eventBroker.Publish(gameID, models.GameEvent{
+		Type: "game.updated",
+		Game: cloneGame(game),
+		Data: map[string]string{
+			"action": "rematch",
+		},
+	})
+
+	return cloneGame(game), nil
+}
+
 func SubscribeToGameEvents(gameID string) (chan models.GameEvent, *models.Game, error) {
 	gamesMu.RLock()
 	game, exists := games[gameID]
