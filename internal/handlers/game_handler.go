@@ -112,6 +112,25 @@ func PlayGameHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, game)
 }
 
+// RematchGameHandler godoc
+// @Summary      Relancer une partie terminée
+// @Description  Réinitialise une partie terminée (scores remis à zéro) pour que les mêmes joueurs rejouent.
+// @Tags         Game
+// @Produce      json
+// @Param        id   path      string  true  "ID de la partie"
+// @Success      200  {object}  models.Game
+// @Failure      400  {object}  map[string]string
+// @Router       /game/{id}/rematch [post]
+func RematchGameHandler(c *gin.Context) {
+	gameID := c.Param("id")
+	game, err := services.RematchGame(gameID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, game)
+}
+
 // StreamGameEventsHandler godoc
 // @Summary      Suivre une partie en temps reel
 // @Description  Ouvre un flux SSE pour recevoir les mises a jour d'une partie.

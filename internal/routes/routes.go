@@ -20,5 +20,6 @@ func SetupRoutes(router *gin.Engine) {
 	router.GET("/game/:id", handlers.GetGameHandler)
 	router.GET("/game/:id/events", handlers.StreamGameEventsHandler)
 	router.POST("/game/:id/play", handlers.PlayGameHandler)
+	router.POST("/game/:id/rematch", handlers.RematchGameHandler)
 
 }
